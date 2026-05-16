@@ -1,46 +1,119 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Cpu, Activity, List, LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ListOrdered, RotateCcw, Clock, ArrowRight, ChevronLeft } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
+import './Home.css';
+
+const ALGOS = [
+  {
+    key: 'FCFS',
+    label: 'Visualize FCFS',
+    full: 'First Come First Serve',
+    icon: ListOrdered,
+    color: '#3b82f6',
+    shadow: 'rgba(59,130,246,0.25)',
+    desc: 'Processes are executed in the order they arrive. Simple, non-preemptive, and easy to understand.',
+    tags: ['Non-preemptive', 'Arrival order', 'Simple'],
+  },
+  {
+    key: 'RR',
+    label: 'Visualize RR',
+    full: 'Round Robin',
+    icon: RotateCcw,
+    color: '#8b5cf6',
+    shadow: 'rgba(139,92,246,0.25)',
+    desc: 'Each process gets a fixed time slice (quantum) in rotation. Fair and widely used in time-sharing systems.',
+    tags: ['Preemptive', 'Time quantum', 'Fair'],
+  },
+  {
+    key: 'SJF',
+    label: 'Visualize SJF',
+    full: 'Shortest Job First',
+    icon: Clock,
+    color: '#10b981',
+    shadow: 'rgba(16,185,129,0.25)',
+    desc: 'The process with the shortest burst time runs next. Minimizes average waiting time across all processes.',
+    tags: ['Non-preemptive', 'Burst time', 'Optimal avg wait'],
+  },
+];
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
-    <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <div style={{ textAlign: 'center', maxWidth: '800px', padding: '2rem' }}>
-        <h1 style={{ fontSize: '3rem', color: 'var(--accent-blue)', marginBottom: '1rem', letterSpacing: '-0.05em' }}>
-          OS PROJECT HUB
-        </h1>
-        <p style={{ color: 'var(--text-darker)', fontSize: '1.2rem', marginBottom: '3rem' }}>
-          A comprehensive suite of operating system simulation and visualization tools.
+    <div className="home-page">
+
+      {/* Back button */}
+      <button className="home-back-btn" onClick={() => navigate('/')}>
+        <ChevronLeft size={14} /> Back
+      </button>
+
+      {/* Header */}
+      <div className="home-header">
+        <div className="home-tag">CPU SCHEDULING</div>
+        <h1 className="home-title">Choose an Algorithm</h1>
+        <p className="home-subtitle">
+          Select a scheduling algorithm to open the interactive visualizer.
         </p>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-          <Link to="/visualizer" className="card" style={{ textDecoration: 'none', transition: 'transform 0.2s', cursor: 'pointer' }} 
-                onMouseOver={e => e.currentTarget.style.transform = 'translateY(-5px)'}
-                onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-            <div className="card-header" style={{ borderBottom: '1px solid #2a2a2a', paddingBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <Cpu size={24} color="var(--accent-blue)" />
-              <span className="card-title" style={{ fontSize: '1.2rem' }}>CPU Scheduling</span>
+      {/* Cards */}
+      <div className="home-cards">
+        {ALGOS.map(({ key, label, full, icon: Icon, color, shadow, desc, tags }) => (
+          <div
+            key={key}
+            className="home-card"
+            onClick={() => navigate(`/visualizer?algo=${key}`)}
+            onMouseOver={e => {
+              e.currentTarget.style.borderColor = color;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = `0 12px 40px ${shadow}`;
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.borderColor = '';
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.boxShadow = '';
+            }}
+          >
+            {/* Icon box */}
+            <div className="home-card__icon" style={{
+              background: `rgba(${hexToRgb(color)}, 0.12)`,
+              border: `1px solid rgba(${hexToRgb(color)}, 0.3)`,
+              color,
+            }}>
+              <Icon size={22} />
             </div>
-            <div className="card-body">
-              <p style={{ color: 'var(--text-darker)', fontSize: '0.9rem' }}>
-                Visualize and simulate various CPU scheduling algorithms like FCFS, SJF, and Round Robin in real-time.
-              </p>
-            </div>
-          </Link>
 
-          <div className="card" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-            <div className="card-header" style={{ borderBottom: '1px solid #2a2a2a', paddingBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <Activity size={24} color="var(--accent-red)" />
-              <span className="card-title" style={{ fontSize: '1.2rem' }}>Memory Management</span>
+            {/* Text */}
+            <div>
+              <div className="home-card__key" style={{ color }}>{key}</div>
+              <h3 className="home-card__title">{full}</h3>
+              <p className="home-card__desc">{desc}</p>
             </div>
-            <div className="card-body">
-              <p style={{ color: 'var(--text-darker)', fontSize: '0.9rem' }}>
-                Coming soon: Visualizing Paging, Segmentation, and Page Replacement algorithms.
-              </p>
+
+            {/* Tags */}
+            <div className="home-card__tags">
+              {tags.map(t => (
+                <span key={t} className="home-card__tag">{t}</span>
+              ))}
+            </div>
+
+            {/* CTA row */}
+            <div className="home-card__cta">
+              <span style={{ color }}>{label}</span>
+              <ArrowRight size={16} color={color} />
             </div>
           </div>
-        </div>
+        ))}
       </div>
+
+      <ThemeToggle position="fixed" />
     </div>
   );
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
 }

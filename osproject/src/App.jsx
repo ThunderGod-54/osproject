@@ -1,15 +1,19 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
+import Landing from './pages/Landing';
 import Home from './pages/Home';
 import SchedulingVisualizer from './pages/SchedulingVisualizer';
 import './index.css';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/visualizer" element={<SchedulingVisualizer />} />
-    </Routes>
+    <ThemeProvider>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/visualizer" element={<SchedulingVisualizer />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 

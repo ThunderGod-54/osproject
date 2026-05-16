@@ -1,0 +1,50 @@
+/* ── Theme Toggle ── */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  background: var(--card-bg);
+  border-color: var(--border-light);
+  color: var(--text-main);
+  transform: rotate(15deg);
+}
+
+.theme-toggle:active {
+  transform: rotate(15deg) scale(0.92);
+}
+
+/* Fixed — bottom-right corner */
+.theme-toggle--fixed {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  z-index: 200;
+}
+
+.theme-toggle--fixed:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Inline — sits inside a flex row (navbars, icon rows) */
+.theme-toggle--inline {
+  position: static;
+}

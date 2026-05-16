@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { runSchedulingAlgorithm } from "../lib/algorithms";
 import InputPanel from "../components/InputPanel";
 import ReadyQueue from "../components/ReadyQueue";
@@ -13,18 +14,28 @@ import {
   Settings,
   Wifi,
   Bell,
-  Activity,
   Cpu,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 function SchedulingVisualizer() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const initialAlgo = ['FCFS', 'RR', 'SJF'].includes(searchParams.get('algo'))
+    ? searchParams.get('algo')
+    : 'RR';
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [processes, setProcesses] = useState([
     { id: "P1", at: 0, bt: 7, color: "#3b82f6" },
     { id: "P2", at: 1, bt: 7, color: "#10b981" },
     { id: "P3", at: 2, bt: 3, color: "#f59e0b" },
   ]);
-  const [algorithm, setAlgorithm] = useState("RR");
+  const [algorithm, setAlgorithm] = useState(initialAlgo);
   const [timeQuantum, setTimeQuantum] = useState(4);
 
   // Simulation State
@@ -122,82 +133,113 @@ function SchedulingVisualizer() {
   return (
     <div className="app-container">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarCollapsed ? ' sidebar--collapsed' : ''}`}>
+
+        {/* Sidebar header: back button + collapse toggle */}
         <div className="sidebar-header">
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <h2>NODE_01</h2>
-            <p>System Root</p>
-          </Link>
-          <div className="uptime-badge">UPTIME: 142:12:04</div>
+          {!sidebarCollapsed && (
+            <button
+              className="sidebar-back-btn"
+              onClick={() => navigate('/home')}
+              title="Back to Home"
+            >
+              <ArrowLeft size={15} />
+              Back to Home
+            </button>
+          )}
+          <button
+            className="sidebar-collapse-btn"
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
         </div>
 
-        <div
-          style={{
-            padding: "1.5rem",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.5rem",
-          }}
-        >
-          <InputPanel
-            processes={processes}
-            setProcesses={setProcesses}
-            algorithm={algorithm}
-            setAlgorithm={setAlgorithm}
-            timeQuantum={timeQuantum}
-            setTimeQuantum={setTimeQuantum}
-          />
+        {/* Sidebar content — hidden when collapsed */}
+        {!sidebarCollapsed && (
+          <div
+            style={{
+              padding: "1.5rem",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem",
+              flex: 1,
+            }}
+          >
+            <InputPanel
+              processes={processes}
+              setProcesses={setProcesses}
+              algorithm={algorithm}
+              setAlgorithm={setAlgorithm}
+              timeQuantum={timeQuantum}
+              setTimeQuantum={setTimeQuantum}
+            />
 
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Simulation Controls</span>
-            </div>
-            <div
-              className="card-body"
-              style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
-            >
-              {simulationState === "running" ? (
+            <div className="card">
+              <div className="card-header">
+                <span className="card-title">Simulation Controls</span>
+              </div>
+              <div
+                className="card-body"
+                style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
+              >
+                {simulationState === "running" ? (
+                  <button
+                    className="btn-add"
+                    onClick={() => setSimulationState("paused")}
+                    style={{ flex: 1, justifyContent: "center" }}
+                  >
+                    <Pause size={16} /> PAUSE
+                  </button>
+                ) : (
+                  <button
+                    className="btn-add"
+                    onClick={() => setSimulationState("running")}
+                    disabled={simulationState === "finished"}
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      borderColor: "var(--accent-blue)",
+                      color: "var(--accent-blue)",
+                    }}
+                  >
+                    <Play size={16} /> PLAY
+                  </button>
+                )}
                 <button
                   className="btn-add"
-                  onClick={() => setSimulationState("paused")}
-                  style={{ flex: 1, justifyContent: "center" }}
-                >
-                  <Pause size={16} /> PAUSE
-                </button>
-              ) : (
-                <button
-                  className="btn-add"
-                  onClick={() => setSimulationState("running")}
-                  disabled={simulationState === "finished"}
+                  onClick={() => {
+                    setSimulationState("idle");
+                    setCurrentTime(0);
+                  }}
                   style={{
                     flex: 1,
                     justifyContent: "center",
-                    borderColor: "var(--accent-blue)",
-                    color: "var(--accent-blue)",
+                    borderColor: "var(--accent-red)",
+                    color: "var(--accent-red)",
                   }}
                 >
-                  <Play size={16} /> PLAY
+                  <Square size={16} /> RESET
                 </button>
-              )}
-              <button
-                className="btn-add"
-                onClick={() => {
-                  setSimulationState("idle");
-                  setCurrentTime(0);
-                }}
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  borderColor: "var(--accent-red)",
-                  color: "var(--accent-red)",
-                }}
-              >
-                <Square size={16} /> RESET
-              </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* When collapsed: show icon-only back button */}
+        {sidebarCollapsed && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '1rem', gap: '0.75rem' }}>
+            <button
+              className="sidebar-icon-btn"
+              onClick={() => navigate('/home')}
+              title="Back to Home"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Main Wrapper */}
@@ -206,34 +248,17 @@ function SchedulingVisualizer() {
         <header className="top-navbar">
           <div className="brand-title">CPU SCHEDULING VISUALIZER_V2.0</div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              backgroundColor: "#1a1a1a",
-              border: "1px solid #2a2a2a",
-              padding: "0.4rem 1rem",
-              borderRadius: "4px",
-              width: "300px",
-            }}
-          >
-            <Search size={16} color="#6b7280" />
+          <div className="viz-search-bar">
+            <Search size={16} className="viz-search-icon" />
             <input
               type="text"
               placeholder="Search parameters..."
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#f3f4f6",
-                marginLeft: "0.5rem",
-                outline: "none",
-                width: "100%",
-                fontSize: "0.8rem",
-              }}
+              className="viz-search-input"
             />
           </div>
 
           <div className="top-icons">
+            <ThemeToggle position="inline" />
             <button className="icon-btn">
               <Settings size={18} />
             </button>
