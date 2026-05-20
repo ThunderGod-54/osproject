@@ -13,6 +13,7 @@
     "electron:build": "vite build && electron-builder"
   },
   "dependencies": {
+    "3dsvg": "^0.2.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SVG3D } from '3dsvg';
 import { Cpu, ArrowRight } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 import './Landing.css';
 
 const TEAM = [
@@ -22,6 +24,8 @@ const DEMO_BLOCKS = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const heroRef = useRef(null);
   const [ganttProgress, setGanttProgress] = useState(0);
 
@@ -89,7 +93,28 @@ export default function Landing() {
           <h1 className="hero-title">
             CPU Scheduling
             <br />
-            <span className="hero-title-accent">Visualizer</span>
+            {isDark
+              ? <SVG3D
+    text="Visualizer"
+    font="Righteous"
+    smoothness={0.6}
+    animate="none"
+    color='#FF0000'
+    zoom={1.8}
+    width="100%"
+    height={200}
+  />
+              : <SVG3D
+    text="Visualizer"
+    font="Righteous"
+    smoothness={0.6}
+    animate="none"
+    color='#FF0000'
+    zoom={1.8}
+    width="100%"
+    height={200}
+  />
+            }
           </h1>
 
           <p className="hero-subtitle">
@@ -161,5 +186,3 @@ export default function Landing() {
     </div>
   );
 }
-
-
