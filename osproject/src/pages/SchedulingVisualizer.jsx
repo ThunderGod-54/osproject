@@ -50,11 +50,12 @@ function SchedulingVisualizer() {
     const result = runSchedulingAlgorithm(processes, algorithm, timeQuantum);
     setEvents(result.events);
     setStats(result.stats);
+
     if (simulationState === "idle") {
-      setSimulationState("running");
       setCurrentTime(0);
+      setCurrentProcess(null);
     }
-  }, [processes, algorithm, timeQuantum]);
+  }, [processes, algorithm, timeQuantum, simulationState]);
 
   // Timer for simulation
   useEffect(() => {
@@ -77,6 +78,12 @@ function SchedulingVisualizer() {
 
   // Update CPU and Ready Queue based on currentTime
   useEffect(() => {
+    if (simulationState === "idle") {
+      setCurrentProcess(null);
+      setReadyQueue([]);
+      return;
+    }
+
     if (events.length === 0) return;
 
     const currEvent = events.find(
@@ -126,7 +133,7 @@ function SchedulingVisualizer() {
     }
 
     setReadyQueue(rq.map((p) => ({ ...p, remainingBt: remainingTimes[p.id] })));
-  }, [currentTime, events, processes, algorithm]);
+  }, [currentTime, events, processes, algorithm, simulationState]);
 
   const visibleStats = stats.filter((s) => s.ct <= currentTime);
 
