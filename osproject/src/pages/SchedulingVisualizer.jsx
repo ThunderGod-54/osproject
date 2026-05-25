@@ -21,6 +21,12 @@ import {
 } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 
+const DEFAULT_PROCESSES = [
+  { id: "P1", at: 0, bt: 7, color: "#3b82f6" },
+  { id: "P2", at: 1, bt: 7, color: "#10b981" },
+  { id: "P3", at: 2, bt: 3, color: "#f59e0b" },
+];
+
 function SchedulingVisualizer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -29,12 +35,8 @@ function SchedulingVisualizer() {
     : 'RR';
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  const [processes, setProcesses] = useState([
-    { id: "P1", at: 0, bt: 7, color: "#3b82f6" },
-    { id: "P2", at: 1, bt: 7, color: "#10b981" },
-    { id: "P3", at: 2, bt: 3, color: "#f59e0b" },
-  ]);
+  const [manualProcesses, setManualProcesses] = useState([]);
+  const [activeProcessSource, setActiveProcessSource] = useState("default");
   const [algorithm, setAlgorithm] = useState(initialAlgo);
   const [timeQuantum, setTimeQuantum] = useState(4);
 
@@ -46,8 +48,11 @@ function SchedulingVisualizer() {
   const [readyQueue, setReadyQueue] = useState([]);
   const [currentProcess, setCurrentProcess] = useState(null);
 
+  const activeProcesses =
+    activeProcessSource === "manual" ? manualProcesses : DEFAULT_PROCESSES;
+
   useEffect(() => {
-    const result = runSchedulingAlgorithm(processes, algorithm, timeQuantum);
+    const result = runSchedulingAlgorithm(activeProcesses, algorithm, timeQuantum);
     setEvents(result.events);
     setStats(result.stats);
 
@@ -55,7 +60,7 @@ function SchedulingVisualizer() {
       setCurrentTime(0);
       setCurrentProcess(null);
     }
-  }, [processes, algorithm, timeQuantum, simulationState]);
+  }, [activeProcesses, algorithm, timeQuantum, simulationState]);
 
   // Timer for simulation
   useEffect(() => {
@@ -94,7 +99,7 @@ function SchedulingVisualizer() {
       if (currEvent.processId === "Idle") {
         setCurrentProcess({ id: "Idle" });
       } else {
-        const p = processes.find((p) => p.id === currEvent.processId);
+        const p = activeProcesses.find((p) => p.id === currEvent.processId);
         setCurrentProcess(p);
       }
     } else if (currentTime >= events[events.length - 1].end) {
@@ -104,7 +109,7 @@ function SchedulingVisualizer() {
     }
 
     const remainingTimes = {};
-    processes.forEach((p) => (remainingTimes[p.id] = p.bt));
+    activeProcesses.forEach((p) => (remainingTimes[p.id] = p.bt));
 
     events.forEach((e) => {
       if (e.processId === "Idle") return;
@@ -119,7 +124,7 @@ function SchedulingVisualizer() {
       }
     });
 
-    const rq = processes.filter(
+    const rq = activeProcesses.filter(
       (p) =>
         p.at <= currentTime &&
         remainingTimes[p.id] > 0 &&
@@ -133,7 +138,7 @@ function SchedulingVisualizer() {
     }
 
     setReadyQueue(rq.map((p) => ({ ...p, remainingBt: remainingTimes[p.id] })));
-  }, [currentTime, events, processes, algorithm, simulationState]);
+  }, [currentTime, events, activeProcesses, algorithm, simulationState]);
 
   const visibleStats = stats.filter((s) => s.ct <= currentTime);
 
@@ -176,8 +181,8 @@ function SchedulingVisualizer() {
             }}
           >
             <InputPanel
-              processes={processes}
-              setProcesses={setProcesses}
+              manualProcesses={manualProcesses}
+              setManualProcesses={setManualProcesses}
               algorithm={algorithm}
               setAlgorithm={setAlgorithm}
               timeQuantum={timeQuantum}
@@ -201,19 +206,42 @@ function SchedulingVisualizer() {
                     <Pause size={16} /> PAUSE
                   </button>
                 ) : (
-                  <button
-                    className="btn-add"
-                    onClick={() => setSimulationState("running")}
-                    disabled={simulationState === "finished"}
-                    style={{
-                      flex: 1,
-                      justifyContent: "center",
-                      borderColor: "var(--accent-blue)",
-                      color: "var(--accent-blue)",
-                    }}
-                  >
-                    <Play size={16} /> PLAY
-                  </button>
+                  <>
+                    <button
+                      className="btn-add"
+                      onClick={() => {
+                        setActiveProcessSource("default");
+                        setCurrentTime(0);
+                        setSimulationState("running");
+                      }}
+                      disabled={simulationState === "finished"}
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        borderColor: "var(--accent-blue)",
+                        color: "var(--accent-blue)",
+                      }}
+                    >
+                      <Play size={16} /> PLAY DEFAULT
+                    </button>
+                    <button
+                      className="btn-add"
+                      onClick={() => {
+                        setActiveProcessSource("manual");
+                        setCurrentTime(0);
+                        setSimulationState("running");
+                      }}
+                      disabled={simulationState === "finished" || manualProcesses.length === 0}
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        borderColor: "var(--accent-orange)",
+                        color: "var(--accent-orange)",
+                      }}
+                    >
+                      <Play size={16} /> RUN MANUAL
+                    </button>
+                  </>
                 )}
                 <button
                   className="btn-add"
